@@ -45,8 +45,22 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr,
                                                      typename pcl::PointCloud<PointT>::Ptr cloud)
 {
   // TODO: Create two new point clouds, one cloud with obstacles and other with segmented plane
+    typename pcl::PointCloud<PointT>::Ptr obstCloud (new pcl::PointCloud<PointT> ());
+    typename pcl::PointCloud<PointT>::Ptr planeCloud (new pcl::PointCloud<PointT> ());
 
-    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(cloud, cloud);
+    // Create the filtering object
+    pcl::ExtractIndices<pcl::PointXYZ> extract;
+    // Extract the inliers
+    extract.setInputCloud (cloud);
+    extract.setIndices (inliers);
+
+    extract.setNegative (false);
+    extract.filter (*obstCloud);
+
+    extract.setNegative (true);
+    extract.filter (*planeCloud);
+
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(obstCloud, planeCloud);
     return segResult;
 }
 
@@ -59,7 +73,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr,
 {
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
-	pcl::PointIndices::Ptr inliers;
+	pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
     // TODO:: Fill in this function to find inliers for the cloud.
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
     // Create the segmentation object
